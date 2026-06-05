@@ -1,0 +1,9 @@
+.docker-config/
+node_modules/
+.venv/
+vendor/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+__pycache__/
+*.pyc

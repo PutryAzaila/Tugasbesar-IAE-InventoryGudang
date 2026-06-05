@@ -1,0 +1,220 @@
+services:
+  gateway:
+    build:
+      context: ./gateway
+    environment:
+      PORT: "8080"
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      AUTH_SERVICE_URL: http://auth-service:3001
+      ITEM_SERVICE_URL: http://item-service:3002
+      SUPPLIER_SERVICE_URL: http://supplier-service:3003
+      STOCK_SERVICE_URL: http://stock-service:3004
+      REPORT_SERVICE_URL: http://report-service:3005
+      HISTORY_SERVICE_URL: http://history-service:3006
+    ports:
+      - "8080:8080"
+    depends_on:
+      auth-service:
+        condition: service_started
+      item-service:
+        condition: service_started
+      supplier-service:
+        condition: service_started
+      stock-service:
+        condition: service_started
+      report-service:
+        condition: service_started
+      history-service:
+        condition: service_started
+    restart: unless-stopped
+
+  auth-db:
+    image: mysql:8.4
+    command: ["mysqld", "--performance-schema=OFF", "--innodb-buffer-pool-size=64M", "--max-connections=80"]
+    environment:
+      MYSQL_ROOT_PASSWORD: ${AUTH_DB_ROOT_PASSWORD:-root-auth-secret}
+      MYSQL_DATABASE: auth_db
+      MYSQL_USER: auth_user
+      MYSQL_PASSWORD: ${AUTH_DB_PASSWORD:-auth_pass}
+    volumes:
+      - auth-db-data:/var/lib/mysql
+      - ./auth-service/db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  auth-service:
+    build:
+      context: ./auth-service
+    environment:
+      PORT: "3001"
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      DB_HOST: auth-db
+      DB_PORT: "3306"
+      DB_NAME: auth_db
+      DB_USER: auth_user
+      DB_PASSWORD: ${AUTH_DB_PASSWORD:-auth_pass}
+    depends_on:
+      auth-db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  item-db:
+    image: mysql:8.4
+    command: ["mysqld", "--performance-schema=OFF", "--innodb-buffer-pool-size=64M", "--max-connections=80"]
+    environment:
+      MYSQL_ROOT_PASSWORD: ${ITEM_DB_ROOT_PASSWORD:-root-item-secret}
+      MYSQL_DATABASE: item_db
+      MYSQL_USER: item_user
+      MYSQL_PASSWORD: ${ITEM_DB_PASSWORD:-item_pass}
+    volumes:
+      - item-db-data:/var/lib/mysql
+      - ./item-service/db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  item-service:
+    build:
+      context: ./item-service
+    environment:
+      PORT: "3002"
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      DB_HOST: item-db
+      DB_PORT: "3306"
+      DB_NAME: item_db
+      DB_USER: item_user
+      DB_PASSWORD: ${ITEM_DB_PASSWORD:-item_pass}
+    depends_on:
+      item-db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  supplier-db:
+    image: mysql:8.4
+    command: ["mysqld", "--performance-schema=OFF", "--innodb-buffer-pool-size=64M", "--max-connections=80"]
+    environment:
+      MYSQL_ROOT_PASSWORD: ${SUPPLIER_DB_ROOT_PASSWORD:-root-supplier-secret}
+      MYSQL_DATABASE: supplier_db
+      MYSQL_USER: supplier_user
+      MYSQL_PASSWORD: ${SUPPLIER_DB_PASSWORD:-supplier_pass}
+    volumes:
+      - supplier-db-data:/var/lib/mysql
+      - ./supplier-service/db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  supplier-service:
+    build:
+      context: ./supplier-service
+    environment:
+      PORT: "3003"
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      DB_HOST: supplier-db
+      DB_PORT: "3306"
+      DB_NAME: supplier_db
+      DB_USER: supplier_user
+      DB_PASSWORD: ${SUPPLIER_DB_PASSWORD:-supplier_pass}
+    depends_on:
+      supplier-db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  stock-db:
+    image: mysql:8.4
+    command: ["mysqld", "--performance-schema=OFF", "--innodb-buffer-pool-size=64M", "--max-connections=80"]
+    environment:
+      MYSQL_ROOT_PASSWORD: ${STOCK_DB_ROOT_PASSWORD:-root-stock-secret}
+      MYSQL_DATABASE: stock_db
+      MYSQL_USER: stock_user
+      MYSQL_PASSWORD: ${STOCK_DB_PASSWORD:-stock_pass}
+    volumes:
+      - stock-db-data:/var/lib/mysql
+      - ./stock-service/db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  stock-service:
+    build:
+      context: ./stock-service
+    environment:
+      PORT: "3004"
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      DB_HOST: stock-db
+      DB_PORT: "3306"
+      DB_NAME: stock_db
+      DB_USER: stock_user
+      DB_PASSWORD: ${STOCK_DB_PASSWORD:-stock_pass}
+      ITEM_SERVICE_URL: http://item-service:3002
+    depends_on:
+      stock-db:
+        condition: service_healthy
+      item-service:
+        condition: service_started
+    restart: unless-stopped
+
+  report-service:
+    build:
+      context: ./report-service
+    environment:
+      PORT: "3005"
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      ITEM_SERVICE_URL: http://item-service:3002
+      SUPPLIER_SERVICE_URL: http://supplier-service:3003
+      STOCK_SERVICE_URL: http://stock-service:3004
+    restart: unless-stopped
+
+  history-db:
+    image: mysql:8.4
+    command: ["mysqld", "--performance-schema=OFF", "--innodb-buffer-pool-size=64M", "--max-connections=80"]
+    environment:
+      MYSQL_ROOT_PASSWORD: ${HISTORY_DB_ROOT_PASSWORD:-root-history-secret}
+      MYSQL_DATABASE: history_db
+      MYSQL_USER: history_user
+      MYSQL_PASSWORD: ${HISTORY_DB_PASSWORD:-history_pass}
+    volumes:
+      - history-db-data:/var/lib/mysql
+      - ./history-service/db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  history-service:
+    build:
+      context: ./history-service
+    environment:
+      PORT: "3006"
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      DB_HOST: history-db
+      DB_PORT: "3306"
+      DB_NAME: history_db
+      DB_USER: history_user
+      DB_PASSWORD: ${HISTORY_DB_PASSWORD:-history_pass}
+    depends_on:
+      history-db:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  auth-db-data:
+  item-db-data:
+  supplier-db-data:
+  stock-db-data:
+  history-db-data:
