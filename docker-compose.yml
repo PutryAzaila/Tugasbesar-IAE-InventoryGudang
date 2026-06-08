@@ -11,6 +11,7 @@ services:
       STOCK_SERVICE_URL: http://stock-service:3004
       REPORT_SERVICE_URL: http://report-service:3005
       HISTORY_SERVICE_URL: http://history-service:3006
+      PURCHASE_ORDER_SERVICE_URL: http://purchase-order-service:8003
     ports:
       - "8080:8080"
     depends_on:
@@ -25,6 +26,8 @@ services:
       report-service:
         condition: service_started
       history-service:
+        condition: service_started
+      purchase-order-service:
         condition: service_started
     restart: unless-stopped
 
@@ -94,6 +97,19 @@ services:
     depends_on:
       item-db:
         condition: service_healthy
+    restart: unless-stopped
+
+  purchase-order-service:
+    build:
+      context: ./Purchase-Order
+    container_name: purchase-order-service
+    ports:
+      - "8003:8003"
+    environment:
+      Stock_Service_URL: http://stock-service:3004
+    depends_on:
+      stock-service:
+        condition: service_started
     restart: unless-stopped
 
   supplier-db:
