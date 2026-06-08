@@ -12,6 +12,7 @@ services:
       REPORT_SERVICE_URL: http://report-service:3005
       HISTORY_SERVICE_URL: http://history-service:3006
       PURCHASE_ORDER_SERVICE_URL: http://purchase-order-service:8003
+      NOTIFICATION_SERVICE_URL: http://notification-service:3008
     ports:
       - "8080:8080"
     depends_on:
@@ -28,6 +29,8 @@ services:
       history-service:
         condition: service_started
       purchase-order-service:
+        condition: service_started
+      notification-service:
         condition: service_started
     restart: unless-stopped
 
@@ -180,6 +183,22 @@ services:
       stock-db:
         condition: service_healthy
       item-service:
+        condition: service_started
+    restart: unless-stopped
+
+  notification-service:
+    build:
+      context: ./notification-service
+    environment:
+      PORT: "3008"
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      STOCK_SERVICE_URL: http://stock-service:3004
+      LOW_STOCK_LIMIT: 10
+      POLL_INTERVAL_SECONDS: 30
+    ports:
+      - "3008:3008"
+    depends_on:
+      stock-service:
         condition: service_started
     restart: unless-stopped
 
