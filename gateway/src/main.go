@@ -44,6 +44,7 @@ func main() {
 		{Prefix: "/reports", Target: env("REPORT_SERVICE_URL", ""), AllowedRoles: roles("admin")},
 		{Prefix: "/history", Target: env("HISTORY_SERVICE_URL", ""), AllowedRoles: roles("admin")},
 		{Prefix: "/notifications", Target: env("NOTIFICATION_SERVICE_URL", ""), AllowedRoles: roles("admin", "manager")},
+		{Prefix: "/purchase-orders", Target: env("PURCHASE_ORDER_SERVICE_URL", ""), AllowedRoles: roles("admin", "manager")},
 	}
 
 	app := fiber.New(fiber.Config{
