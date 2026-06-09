@@ -1,0 +1,22 @@
+{
+  "name": "graphql-gateway",
+  "version": "1.0.0",
+  "description": "Apollo Server GraphQL Gateway for microservices",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@apollo/server": "^4.11.0",
+    "axios": "^1.7.9",
+    "dotenv": "^16.4.7",
+    "graphql": "^16.9.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.7.0"
+  }
+}
