@@ -1,4 +1,40 @@
 services:
+  graphql-gateway:
+    build:
+      context: ./graphql-gateway
+    ports:
+      - "4000:4000"
+    environment:
+      PORT: "4000"
+      NODE_ENV: development
+      APOLLO_SANDBOX: "true"
+      AUTH_SERVICE_URL: http://auth-service:3001
+      ITEM_SERVICE_URL: http://item-service:3002
+      SUPPLIER_SERVICE_URL: http://supplier-service:3003
+      STOCK_SERVICE_URL: http://stock-service:3004
+      REPORT_SERVICE_URL: http://report-service:3005
+      HISTORY_SERVICE_URL: http://history-service:3006
+      NOTIFICATION_SERVICE_URL: http://notification-service:3008
+      PURCHASE_ORDER_SERVICE_URL: http://purchase-order-service:8003
+    depends_on:
+      auth-service:
+        condition: service_started
+      item-service:
+        condition: service_started
+      supplier-service:
+        condition: service_started
+      stock-service:
+        condition: service_started
+      report-service:
+        condition: service_started
+      history-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+      purchase-order-service:
+        condition: service_started
+    restart: unless-stopped
+
   gateway:
     build:
       context: ./gateway
